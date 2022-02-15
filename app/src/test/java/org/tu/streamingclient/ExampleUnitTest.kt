@@ -1,4 +1,4 @@
-package org.tu.picamera
+package org.tu.streamingclient
 
 import org.junit.Test
 
