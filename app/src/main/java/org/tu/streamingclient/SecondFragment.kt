@@ -16,6 +16,7 @@ import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.source.rtsp.RtspMediaSource
 import com.google.android.material.snackbar.Snackbar
 import org.tu.streamingclient.databinding.FragmentSecondBinding
+import org.tu.streamingclient.util.HostnameResolver
 import java.util.concurrent.TimeUnit
 
 class SecondFragment : Fragment() {
@@ -24,7 +25,7 @@ class SecondFragment : Fragment() {
 
     //"rtsp://192.168.1.8:8554/stream"
     //"rtsp://raspberrypi.local:8554/stream"
-    private val videoUrl: String = "rtsp://192.168.1.8:8554/stream"
+//    private val videoUrl: String = "rtsp://192.168.1.8:8554/stream"
     private var surfaceView: SurfaceView? = null
     private var player: ExoPlayer? = null
 
@@ -45,6 +46,11 @@ class SecondFragment : Fragment() {
         binding.buttonSecond.setOnClickListener {
             findNavController().navigate(R.id.action_SecondFragment_to_FirstFragment)
         }
+
+        val raspberryHostname = "raspberrypi.local" //maybe not the best idea to hardcode this
+        val hostnameResolver = HostnameResolver()
+        val raspberryAddress = hostnameResolver.resolve(raspberryHostname)!!
+        val videoUrl = "rtsp://$raspberryAddress:8554/stream"
 
         surfaceView = ViewBindings.findChildViewById(view, R.id.surfaceView)
         player = ExoPlayer.Builder(requireContext()).build()
