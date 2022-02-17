@@ -30,10 +30,12 @@ typedef struct {
 typedef struct {
     uint16_t compression;
     uint16_t type;
-    uint16_t clazz;
+    uint16_t clazz; /* The CACHE-FLUSH and RRCLASS */
     uint32_t ttl;
     uint16_t length;
     struct in_addr addr;
+/* The 'packed' attribute is necessary to tell the compiler not to re-order the fields
+ * of the struct, so as not to break the DNS answer packet format */
 } __attribute__((packed)) dns_record_t;
 
 JNIEXPORT jstring JNICALL
@@ -42,6 +44,11 @@ Java_org_tu_streamingclient_util_HostnameResolver_resolveHostname(JNIEnv *env, j
     const char* hostname = (*env)->GetStringUTFChars(env, host, NULL);
 
     int socketfd = socket(AF_INET, SOCK_DGRAM, 0);
+    if (socketfd < 0) {
+        jclass exc = (*env)->FindClass(env, "java/lang/Exception");
+        (*env)->ThrowNew(env, exc, "error creating UDP socket");
+        return NULL;
+    }
 
     struct sockaddr_in address;
     address.sin_family = AF_INET;
@@ -128,6 +135,7 @@ Java_org_tu_streamingclient_util_HostnameResolver_resolveHostname(JNIEnv *env, j
     close(socketfd);
 
     dns_header_t *response_header = (dns_header_t *) response;
+    /* Check the RCODE (0xf mask) for error */
     if ((ntohs(response_header->flags) & 0xf) != 0) {
         jclass exc = (*env)->FindClass(env, "java/lang/Exception");
         (*env)->ThrowNew(env, exc, "mDNS packet error");
@@ -149,6 +157,7 @@ Java_org_tu_streamingclient_util_HostnameResolver_resolveHostname(JNIEnv *env, j
     /* Skip null byte, qtype, and qclass to get to first answer */
     dns_record_t *records = (dns_record_t *) (field_length + 5);
     if (ntohs(response_header->ancount) > 0) {
+        //what if there are multiple Raspberries on the network?
         return (*env)->NewStringUTF(env, inet_ntoa(records[0].addr));
     }
     return NULL;
