@@ -1,20 +1,3 @@
-// Write C++ code here.
-//
-// Do not forget to dynamically load the C++ library into your application.
-//
-// For instance,
-//
-// In MainActivity.java:
-//    static {
-//       System.loadLibrary("streamingclient");
-//    }
-//
-// Or, in MainActivity.kt:
-//    companion object {
-//      init {
-//         System.loadLibrary("streamingclient")
-//      }
-//    }
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -53,8 +36,13 @@ typedef struct {
     struct in_addr addr;
 } __attribute__((packed)) dns_record_t;
 
-void main_resolver(const char* hostname) {
+JNIEXPORT jstring JNICALL
+Java_org_tu_streamingclient_util_HostnameResolver_resolveHostname(JNIEnv *env, jobject thiz,
+                                                                  jstring host) {
+    const char* hostname = (*env)->GetStringUTFChars(env, host, NULL);
+
     int socketfd = socket(AF_INET, SOCK_DGRAM, 0);
+
     struct sockaddr_in address;
     address.sin_family = AF_INET;
     /* mDNS works on IPv4 address 224.0.0.251 (0xe00000fb) */
@@ -106,7 +94,6 @@ void main_resolver(const char* hostname) {
     /* Copy the header first */
     memcpy(p, &header, sizeof (header));
     p += sizeof (header);
-
     /* Copy the question name, QTYPE, and QCLASS fields */
     memcpy(p, question.name, strlen (hostname) + 1);
     p += strlen(hostname) + 2; /* includes 0 octet for end */
@@ -115,24 +102,36 @@ void main_resolver(const char* hostname) {
     memcpy(p, &question.dnsclass, sizeof (question.dnsclass));
 
     /* Send the packet, then request the response */
-    sendto(socketfd, packet, packetlen, 0, (struct sockaddr *) &address,
-           (socklen_t) sizeof (address));
+    ssize_t bytes = sendto(socketfd, packet, packetlen, 0, (struct sockaddr *) &address,
+                           (socklen_t) sizeof (address));
+    if (bytes <= 0) {
+        jclass exc = (*env)->FindClass(env, "java/lang/Exception");
+        (*env)->ThrowNew(env, exc, "error sending mDNS query");
+        return NULL;
+    }
+
+    free(question.name);
+    free(packet);
 
     socklen_t length = 0;
     uint8_t response[512];
     memset(&response, 0, 512);
 
     /* Receive the response from Avahi into a local buffer */
-    ssize_t bytes = recvfrom(socketfd, response, 512, 0, (struct sockaddr *) &address, &length);
+    bytes = recvfrom(socketfd, response, 512, 0, (struct sockaddr *) &address, &length);
     if (bytes <= 0) {
-        perror("error receiving mDNS response");
-        return;
+        jclass exc = (*env)->FindClass(env, "java/lang/Exception");
+        (*env)->ThrowNew(env, exc, "error receiving mDNS answer");
+        return NULL;
     }
+
+    close(socketfd);
 
     dns_header_t *response_header = (dns_header_t *) response;
     if ((ntohs(response_header->flags) & 0xf) != 0) {
-        perror("error from mDNS responder");
-        return;
+        jclass exc = (*env)->FindClass(env, "java/lang/Exception");
+        (*env)->ThrowNew(env, exc, "mDNS packet error");
+        return NULL;
     }
 
     /* Get a pointer to the start of the question name, and
@@ -149,17 +148,8 @@ void main_resolver(const char* hostname) {
 
     /* Skip null byte, qtype, and qclass to get to first answer */
     dns_record_t *records = (dns_record_t *) (field_length + 5);
-    for (int i = 0; i < ntohs(response_header->ancount); i++) {
-        //return this
-        char* raspberry_address = inet_ntoa(records[i].addr);
+    if (ntohs(response_header->ancount) > 0) {
+        return (*env)->NewStringUTF(env, inet_ntoa(records[0].addr));
     }
-}
-
-extern "C"
-JNIEXPORT jstring JNICALL
-Java_org_tu_streamingclient_util_HostnameResolver_resolveHostname(JNIEnv *env, jobject thiz,
-                                                                  jstring host) {
-    const char* host_str = env->GetStringUTFChars(host, nullptr);
-    printf("input arg: %s", host_str);
-    return env->NewStringUTF("192.168.1.8");
+    return NULL;
 }

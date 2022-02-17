@@ -49,7 +49,17 @@ class SecondFragment : Fragment() {
 
         val raspberryHostname = "raspberrypi.local" //maybe not the best idea to hardcode this
         val hostnameResolver = HostnameResolver()
-        val raspberryAddress = hostnameResolver.resolve(raspberryHostname)!!
+        val raspberryAddress = hostnameResolver.resolve(raspberryHostname) {
+            Snackbar.make(view, "${it.message}", Snackbar.LENGTH_LONG)
+                .setAction("Action", null).show()
+        }
+        if (raspberryAddress == null) {
+            Snackbar.make(view, "Can not determine raspberry pi address", Snackbar.LENGTH_LONG)
+                .setAction("Action", null).show()
+            return
+        }
+        Snackbar.make(view, "Raspberry Pi address: $raspberryAddress", Snackbar.LENGTH_LONG)
+            .setAction("Action", null).show()
         val videoUrl = "rtsp://$raspberryAddress:8554/stream"
 
         surfaceView = ViewBindings.findChildViewById(view, R.id.surfaceView)
