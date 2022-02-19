@@ -23,9 +23,6 @@ class SecondFragment : Fragment() {
 
     private var _binding: FragmentSecondBinding? = null
 
-    //"rtsp://192.168.1.8:8554/stream"
-    //"rtsp://raspberrypi.local:8554/stream"
-//    private val videoUrl: String = "rtsp://192.168.1.8:8554/stream"
     private var surfaceView: SurfaceView? = null
     private var player: ExoPlayer? = null
 
@@ -43,42 +40,49 @@ class SecondFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        binding.buttonSecond.setOnClickListener {
-            findNavController().navigate(R.id.action_SecondFragment_to_FirstFragment)
+        binding.stopButton.setOnClickListener {
+            findNavController().navigate(R.id.action_stop_stream)
         }
 
-        val raspberryHostname = "raspberrypi.local" //maybe not the best idea to hardcode this
+        val raspberryHostname = arguments?.getString("hostname") ?: "raspberrypi"
         val hostnameResolver = HostnameResolver()
-        val raspberryAddress = hostnameResolver.resolve(raspberryHostname) {
+        val raspberryAddress = hostnameResolver.resolve("$raspberryHostname.local") {
             Snackbar.make(view, "${it.message}", Snackbar.LENGTH_LONG)
                 .setAction("Action", null).show()
         }
         if (raspberryAddress == null) {
-            Snackbar.make(view, "Can not determine raspberry pi address", Snackbar.LENGTH_LONG)
+            Snackbar.make(view, "Can not determine Raspberry Pi address", Snackbar.LENGTH_LONG)
                 .setAction("Action", null).show()
+            findNavController().navigate(R.id.action_stop_stream)
             return
         }
-        Snackbar.make(view, "Raspberry Pi address: $raspberryAddress", Snackbar.LENGTH_LONG)
-            .setAction("Action", null).show()
-        val videoUrl = "rtsp://$raspberryAddress:8554/stream"
-
         surfaceView = ViewBindings.findChildViewById(view, R.id.surfaceView)
         player = ExoPlayer.Builder(requireContext()).build()
         player?.setVideoSurfaceView(surfaceView)
-        val mediaSource = RtspMediaSource.Factory()
-                                         .setDebugLoggingEnabled(true)
-                                         .setTimeoutMs(TimeUnit.SECONDS.toMillis(5))
-                                         .createMediaSource(MediaItem.fromUri(videoUrl))
+
+        val videoUrl = "rtsp://$raspberryAddress:8554/stream"
+        val mediaSource = createMediaSource(videoUrl)
         player?.setMediaSource(mediaSource)
-        player?.addListener(object : Player.Listener {
+        player?.addListener(onErrorListener(view))
+        player?.setWakeMode(C.WAKE_MODE_NETWORK)
+        player?.prepare()
+        player?.playWhenReady = true
+    }
+
+    private fun createMediaSource(videoUrl: String): RtspMediaSource {
+        return RtspMediaSource.Factory()
+                              .setDebugLoggingEnabled(true)
+                              .setTimeoutMs(TimeUnit.SECONDS.toMillis(5))
+                              .createMediaSource(MediaItem.fromUri(videoUrl))
+    }
+
+    private fun onErrorListener(view: View): Player.Listener {
+        return object : Player.Listener {
             override fun onPlayerError(error: PlaybackException) {
                 Snackbar.make(view, "Error playing track: ${error.cause?.message}", Snackbar.LENGTH_LONG)
                     .setAction("Action", null).show()
             }
-        })
-        player?.setWakeMode(C.WAKE_MODE_NETWORK)
-        player?.prepare()
-        player?.playWhenReady = true
+        }
     }
 
     override fun onDestroyView() {
