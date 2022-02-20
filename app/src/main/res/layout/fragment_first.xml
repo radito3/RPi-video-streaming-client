@@ -8,13 +8,14 @@
 
     <TextView
         android:id="@+id/server_hostname_textview"
-        android:layout_width="168dp"
-        android:layout_height="55dp"
+        android:layout_width="300dp"
+        android:layout_height="50dp"
+        android:layout_marginTop="140dp"
         android:text="@string/server_hostname"
         android:textAlignment="center"
-        android:textSize="20sp"
-        app:layout_constraintBottom_toTopOf="@id/start_button"
+        android:textSize="24sp"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.495"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
@@ -22,28 +23,71 @@
         android:id="@+id/start_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginBottom="168dp"
         android:text="@string/start_stream"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/server_hostname_textview" />
+        app:layout_constraintStart_toStartOf="parent" />
 
     <EditText
         android:id="@+id/server_hostname_textfield"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="102dp"
-        android:layout_marginTop="30dp"
+        android:layout_marginTop="24dp"
         android:layout_marginEnd="100dp"
-        android:layout_marginBottom="134dp"
+        android:autofillHints="name"
         android:ems="10"
         android:hint="@string/rtsp_hostname_hint"
-        android:autofillHints="name"
         android:inputType="textUri|textShortMessage"
         android:minHeight="48dp"
         android:textColorHint="#757575"
-        app:layout_constraintBottom_toTopOf="@+id/start_button"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="1.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/server_hostname_textview" />
+
+    <EditText
+        android:id="@+id/server_password_textfield"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="101dp"
+        android:layout_marginEnd="101dp"
+        android:layout_marginBottom="36dp"
+        android:ems="10"
+        android:hint="Password"
+        android:inputType="textPassword"
+        android:minHeight="48dp"
+        app:layout_constraintBottom_toTopOf="@+id/start_button"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <EditText
+        android:id="@+id/server_username_textfield"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="100dp"
+        android:layout_marginEnd="101dp"
+        android:layout_marginBottom="21dp"
+        android:ems="10"
+        android:hint="Username"
+        android:inputType="textPersonName"
+        android:minHeight="48dp"
+        app:layout_constraintBottom_toTopOf="@+id/server_password_textfield"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <TextView
+        android:id="@+id/textView"
+        android:layout_width="172dp"
+        android:layout_height="40dp"
+        android:layout_marginStart="119dp"
+        android:layout_marginEnd="120dp"
+        android:layout_marginBottom="15dp"
+        android:text="Authentication"
+        android:textAlignment="center"
+        android:textSize="20sp"
+        app:layout_constraintBottom_toTopOf="@+id/server_username_textfield"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -31,17 +31,7 @@ class FirstFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
-        binding.startButton.setOnClickListener {
-            val hostname = view.findViewById<EditText>(R.id.server_hostname_textfield).text.toString()
-            if (hostname.isEmpty()) {
-                Snackbar.make(view, "Hostname empty", Snackbar.LENGTH_LONG)
-                    .setAction("Action", null).show()
-                return@setOnClickListener
-            }
-            val args = bundleOf("hostname" to hostname)
-            findNavController().navigate(R.id.action_start_stream, args)
-        }
+        binding.startButton.setOnClickListener(::tryStartStream)
 
 //        thread {
 //            requestQueue = Volley.newRequestQueue(this)
@@ -60,9 +50,41 @@ class FirstFragment : Fragment() {
 //        }
     }
 
+    private fun tryStartStream(view: View) {
+        val hostname = view.findViewById<EditText>(R.id.server_hostname_textfield).text.toString()
+        if (hostname.isEmpty()) {
+            displayErrorMessage(view, "Hostname")
+            return
+        }
+        val username = view.findViewById<EditText>(R.id.server_username_textfield).text.toString()
+        if (username.isEmpty()) {
+            displayErrorMessage(view, "Username")
+            return
+        }
+        val password = view.findViewById<EditText>(R.id.server_password_textfield).text.toString()
+        if (password.isEmpty()) {
+            displayErrorMessage(view, "Password")
+            return
+        }
+
+        val args = bundleOf(
+            "hostname" to hostname,
+            "username" to username,
+            "password" to password
+        )
+        findNavController().navigate(R.id.action_start_stream, args)
+    }
+
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
 //        requestQueue.cancelAll("custom-tag-01")
+    }
+
+    companion object {
+        private fun displayErrorMessage(view: View, fieldName: String) {
+            Snackbar.make(view, "$fieldName empty", Snackbar.LENGTH_LONG)
+                .setAction("Action", null).show()
+        }
     }
 }

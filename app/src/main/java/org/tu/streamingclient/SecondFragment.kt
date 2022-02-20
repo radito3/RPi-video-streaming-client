@@ -44,6 +44,27 @@ class SecondFragment : Fragment() {
             findNavController().navigate(R.id.action_stop_stream)
         }
 
+        val raspberryAddress = resolveRaspberryHostname(view)
+        if (raspberryAddress == null) {
+            findNavController().navigate(R.id.action_stop_stream)
+            return
+        }
+        surfaceView = ViewBindings.findChildViewById(view, R.id.surfaceView)
+        player = ExoPlayer.Builder(requireContext()).build()
+        player?.setVideoSurfaceView(surfaceView)
+
+        val rtspUsername = arguments?.getString("username") ?: ""
+        val rtspPassword = arguments?.getString("password") ?: ""
+        val videoUrl = "rtsp://$rtspUsername:$rtspPassword@$raspberryAddress:8554/stream"
+        val mediaSource = createMediaSource(videoUrl)
+        player?.setMediaSource(mediaSource)
+        player?.addListener(onErrorListener(view))
+        player?.setWakeMode(C.WAKE_MODE_NETWORK)
+        player?.prepare()
+        player?.playWhenReady = true
+    }
+
+    private fun resolveRaspberryHostname(view: View): String? {
         val raspberryHostname = arguments?.getString("hostname") ?: "raspberrypi"
         val hostnameResolver = HostnameResolver()
         val raspberryAddress = hostnameResolver.resolve("$raspberryHostname.local") {
@@ -53,35 +74,25 @@ class SecondFragment : Fragment() {
         if (raspberryAddress == null) {
             Snackbar.make(view, "Can not determine Raspberry Pi address", Snackbar.LENGTH_LONG)
                 .setAction("Action", null).show()
-            findNavController().navigate(R.id.action_stop_stream)
-            return
         }
-        surfaceView = ViewBindings.findChildViewById(view, R.id.surfaceView)
-        player = ExoPlayer.Builder(requireContext()).build()
-        player?.setVideoSurfaceView(surfaceView)
-
-        val videoUrl = "rtsp://$raspberryAddress:8554/stream"
-        val mediaSource = createMediaSource(videoUrl)
-        player?.setMediaSource(mediaSource)
-        player?.addListener(onErrorListener(view))
-        player?.setWakeMode(C.WAKE_MODE_NETWORK)
-        player?.prepare()
-        player?.playWhenReady = true
+        return raspberryAddress
     }
 
-    private fun createMediaSource(videoUrl: String): RtspMediaSource {
-        return RtspMediaSource.Factory()
-                              .setDebugLoggingEnabled(true)
-                              .setTimeoutMs(TimeUnit.SECONDS.toMillis(5))
-                              .createMediaSource(MediaItem.fromUri(videoUrl))
-    }
+    private fun createMediaSource(videoUrl: String) = RtspMediaSource.Factory()
+        .setDebugLoggingEnabled(true)
+        .setTimeoutMs(TimeUnit.SECONDS.toMillis(5))
+        .createMediaSource(MediaItem.fromUri(videoUrl))
 
-    private fun onErrorListener(view: View): Player.Listener {
-        return object : Player.Listener {
-            override fun onPlayerError(error: PlaybackException) {
-                Snackbar.make(view, "Error playing track: ${error.cause?.message}", Snackbar.LENGTH_LONG)
+    private fun onErrorListener(view: View) = object : Player.Listener {
+        override fun onPlayerError(error: PlaybackException) {
+            if (error.cause?.message?.contains("401") == true) {
+                Snackbar.make(view, "Unauthorized", Snackbar.LENGTH_LONG)
                     .setAction("Action", null).show()
+                findNavController().navigate(R.id.action_stop_stream)
+                return
             }
+            Snackbar.make(view, "Error playing track: ${error.cause?.message}", Snackbar.LENGTH_LONG)
+                .setAction("Action", null).show()
         }
     }
 
