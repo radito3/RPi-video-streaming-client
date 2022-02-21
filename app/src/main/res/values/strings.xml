@@ -2,12 +2,14 @@
     <string name="app_name">Streaming Client</string>
     <string name="action_settings">Settings</string>
     <!-- Strings used for fragments for navigation -->
-    <string name="first_fragment_label">First Fragment</string>
-    <string name="second_fragment_label">Second Fragment</string>
+    <string name="first_fragment_label">Streaming Client</string>
+    <string name="second_fragment_label">Video</string>
     <string name="start_stream">Start stream</string>
-    <string name="stop">Stop</string>
+    <string name="stop_stream">Stop stream</string>
 
     <string name="server_hostname">RTSP server hostname</string>
     <string name="rtsp_hostname_hint">raspberrypi</string>
-    <string name="hello_second_fragment">Hello second fragment. Arg: %1$s</string>
+    <string name="authentication_textview_value">Authentication</string>
+    <string name="username_textfield_value">Username</string>
+    <string name="password_textfield_value">Password</string>
 </resources>

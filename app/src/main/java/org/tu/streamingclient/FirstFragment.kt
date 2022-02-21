@@ -52,9 +52,9 @@ class FirstFragment : Fragment() {
         }
 
         val args = bundleOf(
-            "hostname" to hostname,
-            "username" to username,
-            "password" to password
+            "hostname" to hostname.trim(),
+            "username" to username.trim(),
+            "password" to password.trim()
         )
         findNavController().navigate(R.id.action_start_stream, args)
     }
@@ -66,7 +66,7 @@ class FirstFragment : Fragment() {
 
     companion object {
         private fun displayErrorMessage(view: View, fieldName: String) {
-            Snackbar.make(view, "$fieldName empty", Snackbar.LENGTH_LONG)
+            Snackbar.make(view, "$fieldName is empty", Snackbar.LENGTH_LONG)
                 .setAction("Action", null).show()
         }
     }
