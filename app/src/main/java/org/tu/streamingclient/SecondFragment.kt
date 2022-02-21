@@ -1,13 +1,14 @@
 package org.tu.streamingclient
 
+import android.content.res.Configuration
 import android.os.Bundle
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.SurfaceView
 import android.view.View
 import android.view.ViewGroup
+import android.view.WindowInsets
+import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
-import androidx.viewbinding.ViewBindings
 import com.google.android.exoplayer2.C
 import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.MediaItem
@@ -23,7 +24,7 @@ class SecondFragment : Fragment() {
 
     private var _binding: FragmentSecondBinding? = null
 
-    private var surfaceView: SurfaceView? = null
+    private lateinit var surfaceView: SurfaceView
     private var player: ExoPlayer? = null
 
     // This property is only valid between onCreateView and
@@ -35,7 +36,16 @@ class SecondFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentSecondBinding.inflate(inflater, container, false)
+        surfaceView = binding.surfaceView
         return binding.root
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            (requireActivity() as MainActivity).supportActionBar?.hide()
+            surfaceView.windowInsetsController?.hide(WindowInsets.Type.statusBars() or WindowInsets.Type.navigationBars())
+        }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -49,7 +59,6 @@ class SecondFragment : Fragment() {
             findNavController().navigate(R.id.action_stop_stream)
             return
         }
-        surfaceView = ViewBindings.findChildViewById(view, R.id.surfaceView)
         player = ExoPlayer.Builder(requireContext()).build()
         player?.setVideoSurfaceView(surfaceView)
 

@@ -11,6 +11,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/stop"
+        android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.498"
@@ -20,13 +21,9 @@
 
     <SurfaceView
         android:id="@+id/surfaceView"
-        android:layout_width="386dp"
-        android:layout_height="213dp"
-        android:layout_marginTop="192dp"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
         android:keepScreenOn="true"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.48"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        android:gravity="center" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

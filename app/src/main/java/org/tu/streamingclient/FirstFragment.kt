@@ -19,8 +19,6 @@ class FirstFragment : Fragment() {
     // onDestroyView.
     private val binding get() = _binding!!
 
-//    private lateinit var requestQueue: RequestQueue
-
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -31,23 +29,9 @@ class FirstFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        binding.startButton.setOnClickListener(::tryStartStream)
-
-//        thread {
-//            requestQueue = Volley.newRequestQueue(this)
-//            val url = "https://www.google.com"
-//            val customTag = "custom-tag-01"
-//
-//            val stringRequest = StringRequest(
-//                Request.Method.GET, url,
-//                Response.Listener<String> { response ->
-//                    println("Response is: ${response.substring(0, 500)}")
-//                },
-//                Response.ErrorListener { println("That didn't work!") })
-//            stringRequest.tag = customTag
-//
-//            requestQueue.add(stringRequest)
-//        }
+        binding.startButton.setOnClickListener {
+            tryStartStream(view)
+        }
     }
 
     private fun tryStartStream(view: View) {
@@ -78,7 +62,6 @@ class FirstFragment : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
-//        requestQueue.cancelAll("custom-tag-01")
     }
 
     companion object {
